@@ -11,6 +11,9 @@
 [![Evaluation Score](https://img.shields.io/badge/Evaluation-24%2F24%20(100%25%20A%2B)-brightgreen.svg)]()
 [![License](https://img.shields.io/badge/License-MIT-purple.svg)]()
 
+> 🌐 **Live Cloud Deployment (Zero Setup):**  
+> Test SupportSense AI directly in your browser: **[https://neer-tech878-supportsense-ai-streamlit-app-3sgnux.streamlit.app/](https://neer-tech878-supportsense-ai-streamlit-app-3sgnux.streamlit.app/)**
+
 ---
 
 ## 🌟 Executive Overview & Enterprise Value
@@ -243,7 +246,15 @@ Real-world operational telemetry is heavily skewed. Traditional Gaussian/Z-score
 
 ## 🚀 Quick Start Guide
 
-### Prerequisites
+### ⚡ Option 0 — Instant Live Demo (Zero Installation)
+Test the fully functional cloud-hosted application right in your browser:  
+👉 **[Launch SupportSense AI Live Web App](https://neer-tech878-supportsense-ai-streamlit-app-3sgnux.streamlit.app/)**
+
+---
+
+### Option 1 — Local Execution (Recommended for Evaluators)
+
+#### Prerequisites
 - **Python**: 3.11 or higher
 - **Groq API Key** (Free, takes 60 seconds at [console.groq.com](https://console.groq.com))
 - *(Optional)* **Gemini API Key** (Google AI Studio)
