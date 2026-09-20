@@ -156,11 +156,30 @@ def _inject_cloud_secrets() -> None:
                 settings.OLLAMA_MODEL = injected["OLLAMA_MODEL"]
             if "LLM_PROVIDER" in injected or "PRIMARY_PROVIDER" in injected:
                 settings.LLM_PROVIDER = injected.get("PRIMARY_PROVIDER") or injected.get("LLM_PROVIDER")
+
+            from app.llm.factory import reset_cascade
+            reset_cascade()
         except Exception:
             pass
 
 # Run immediately on app load
 _inject_cloud_secrets()
+
+
+def clear_backend_cache() -> None:
+    """Wipe backend query cache, reset LLM cascade, and clear Streamlit cache."""
+    try:
+        requests.post(f"{API_BASE}/api/v1/cache/clear", timeout=2)
+    except Exception:
+        pass
+    try:
+        from app.cache import cache_clear
+        from app.llm.factory import reset_cascade
+        cache_clear()
+        reset_cascade()
+    except Exception:
+        pass
+    st.cache_data.clear()
 
 
 def _ensure_db_initialised() -> None:
@@ -207,6 +226,11 @@ def api_anomalies(severity: str | None = None) -> dict[str, Any]:
 
 def direct_query(query: str) -> dict[str, Any]:
     _ensure_db_initialised()
+    from app.config import settings
+    from app.llm.factory import get_cascade, reset_cascade
+    cascade = get_cascade()
+    if settings.GROQ_API_KEY and "groq" not in cascade.all_providers:
+        reset_cascade()
     from app.engines.query_engine import run_nl_query
     return run_nl_query(query)
 
@@ -470,6 +494,11 @@ def render_sidebar(local_mode: bool, health: dict | None) -> None:
             st.markdown(f"**Database:** `{health.get('db_rows', 0)} tickets`")
             cache = health.get("cache_stats", {})
             st.markdown(f"**Cache:** `{cache.get('cached_queries', 0)} queries`")
+            if st.button("🗑️ Clear Cache & Reset LLM", use_container_width=True):
+                clear_backend_cache()
+                st.success("Cache cleared & LLM cascade reset!")
+                time.sleep(0.3)
+                st.rerun()
 
         st.markdown("---")
         st.markdown("**Quick Links:**")
