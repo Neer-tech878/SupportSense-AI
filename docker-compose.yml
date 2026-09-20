@@ -1,0 +1,40 @@
+version: "3.9"
+
+services:
+  # ── FastAPI Backend ────────────────────────────────────────
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    container_name: dotmappers-api
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    volumes:
+      - ./support_tickets.csv:/app/support_tickets.csv:ro
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  # ── Streamlit UI ──────────────────────────────────────────
+  ui:
+    build:
+      context: .
+      dockerfile: Dockerfile.ui
+    container_name: dotmappers-ui
+    ports:
+      - "8501:8501"
+    env_file:
+      - .env
+    environment:
+      # Tell Streamlit where the API is (inside Docker network)
+      - API_BASE_URL=http://api:8000
+    depends_on:
+      api:
+        condition: service_healthy
+    restart: unless-stopped
