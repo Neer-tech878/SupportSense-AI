@@ -100,23 +100,47 @@ def is_local_mode() -> bool:
 def _inject_cloud_secrets() -> None:
     """
     When running on Streamlit Community Cloud, inject API keys from
-    st.secrets into the environment so the engine modules pick them up.
+    st.secrets into the environment and app.config.settings.
     """
-    secret_keys = ["GROQ_API_KEY", "GEMINI_API_KEY", "OLLAMA_BASE_URL", "OLLAMA_MODEL"]
+    secret_keys = ["GROQ_API_KEY", "GEMINI_API_KEY", "OLLAMA_BASE_URL", "OLLAMA_MODEL", "LLM_PROVIDER", "PRIMARY_PROVIDER"]
+    injected = {}
     for key in secret_keys:
         try:
             val = st.secrets.get(key, "")
+            if not val and hasattr(st.secrets, key):
+                val = getattr(st.secrets, key, "")
             if val:
-                os.environ[key] = val
+                os.environ[key] = str(val).strip()
+                injected[key] = str(val).strip()
         except Exception:
-            pass  # st.secrets may not exist in local mode
+            pass
+
+    # Update app.config.settings if it's already imported
+    if injected:
+        try:
+            from app.config import settings
+            if "GROQ_API_KEY" in injected:
+                settings.GROQ_API_KEY = injected["GROQ_API_KEY"]
+            if "GEMINI_API_KEY" in injected:
+                settings.GEMINI_API_KEY = injected["GEMINI_API_KEY"]
+            if "OLLAMA_BASE_URL" in injected:
+                settings.OLLAMA_BASE_URL = injected["OLLAMA_BASE_URL"]
+            if "OLLAMA_MODEL" in injected:
+                settings.OLLAMA_MODEL = injected["OLLAMA_MODEL"]
+            if "LLM_PROVIDER" in injected or "PRIMARY_PROVIDER" in injected:
+                settings.LLM_PROVIDER = injected.get("PRIMARY_PROVIDER") or injected.get("LLM_PROVIDER")
+        except Exception:
+            pass
+
+# Run immediately on app load
+_inject_cloud_secrets()
 
 
 def _ensure_db_initialised() -> None:
     """Initialise the in-memory SQLite DB once per session (cloud mode)."""
+    _inject_cloud_secrets()
     if st.session_state.get("_db_ready"):
         return
-    _inject_cloud_secrets()
     # Add project root to path so imports work
     project_root = str(Path(__file__).parent)
     if project_root not in sys.path:
