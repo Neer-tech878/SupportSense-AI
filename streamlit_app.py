@@ -75,40 +75,14 @@ ANOMALY_TYPE_LABELS = {
 }
 
 
-# ── Background FastAPI Daemon & Hybrid Routing ───────────────────────────────
-import threading
-
-def _ensure_fastapi_running() -> None:
-    """If FastAPI isn't already running, spin it up in a background daemon thread."""
-    try:
-        if requests.get(f"{API_BASE}/health", timeout=1).status_code == 200:
-            return
-    except Exception:
-        pass
-
-    try:
-        import uvicorn
-        from app.main import app as fastapi_app
-        config = uvicorn.Config(fastapi_app, host="127.0.0.1", port=8000, log_level="warning")
-        server = uvicorn.Server(config)
-        thread = threading.Thread(target=server.run, daemon=True)
-        thread.start()
-        # Give uvicorn up to 2.5 seconds to bind and start listening
-        for _ in range(12):
-            time.sleep(0.2)
-            try:
-                if requests.get(f"{API_BASE}/health", timeout=1).status_code == 200:
-                    break
-            except Exception:
-                pass
-    except Exception:
-        pass
-
+# ── Hybrid Routing Detection ──────────────────────────────────────────────────
 
 @st.cache_data(ttl=30, show_spinner=False)
 def _detect_api_mode() -> bool:
     """
-    Returns True if FastAPI backend is reachable.
+    Returns True if FastAPI backend is reachable (LOCAL mode).
+    Returns False if running standalone (CLOUD mode).
+    Result is cached for 30 seconds.
     """
     try:
         resp = requests.get(f"{API_BASE}/health", timeout=HEALTH_TIMEOUT)
@@ -118,7 +92,6 @@ def _detect_api_mode() -> bool:
 
 
 def is_local_mode() -> bool:
-    _ensure_fastapi_running()
     return _detect_api_mode()
 
 
@@ -156,30 +129,11 @@ def _inject_cloud_secrets() -> None:
                 settings.OLLAMA_MODEL = injected["OLLAMA_MODEL"]
             if "LLM_PROVIDER" in injected or "PRIMARY_PROVIDER" in injected:
                 settings.LLM_PROVIDER = injected.get("PRIMARY_PROVIDER") or injected.get("LLM_PROVIDER")
-
-            from app.llm.factory import reset_cascade
-            reset_cascade()
         except Exception:
             pass
 
 # Run immediately on app load
 _inject_cloud_secrets()
-
-
-def clear_backend_cache() -> None:
-    """Wipe backend query cache, reset LLM cascade, and clear Streamlit cache."""
-    try:
-        requests.post(f"{API_BASE}/api/v1/cache/clear", timeout=2)
-    except Exception:
-        pass
-    try:
-        from app.cache import cache_clear
-        from app.llm.factory import reset_cascade
-        cache_clear()
-        reset_cascade()
-    except Exception:
-        pass
-    st.cache_data.clear()
 
 
 def _ensure_db_initialised() -> None:
@@ -226,11 +180,6 @@ def api_anomalies(severity: str | None = None) -> dict[str, Any]:
 
 def direct_query(query: str) -> dict[str, Any]:
     _ensure_db_initialised()
-    from app.config import settings
-    from app.llm.factory import get_cascade, reset_cascade
-    cascade = get_cascade()
-    if settings.GROQ_API_KEY and "groq" not in cascade.all_providers:
-        reset_cascade()
     from app.engines.query_engine import run_nl_query
     return run_nl_query(query)
 
@@ -475,11 +424,11 @@ def render_sidebar(local_mode: bool, health: dict | None) -> None:
 
         # Mode indicator
         if local_mode:
-            st.markdown('<span class="mode-local">🟢 FastAPI API Mode</span>', unsafe_allow_html=True)
-            st.caption("Active REST API on :8000")
+            st.markdown('<span class="mode-local">🟢 Local API Mode</span>', unsafe_allow_html=True)
+            st.caption("Connected to FastAPI on :8000")
         else:
-            st.markdown('<span class="mode-cloud">🟡 In-Memory Mode</span>', unsafe_allow_html=True)
-            st.caption("Running engines directly")
+            st.markdown('<span class="mode-cloud">🟡 Cloud In-Memory Mode</span>', unsafe_allow_html=True)
+            st.caption("Running engines directly (no FastAPI)")
 
         st.markdown("---")
 
@@ -494,11 +443,6 @@ def render_sidebar(local_mode: bool, health: dict | None) -> None:
             st.markdown(f"**Database:** `{health.get('db_rows', 0)} tickets`")
             cache = health.get("cache_stats", {})
             st.markdown(f"**Cache:** `{cache.get('cached_queries', 0)} queries`")
-            if st.button("🗑️ Clear Cache & Reset LLM", use_container_width=True):
-                clear_backend_cache()
-                st.success("Cache cleared & LLM cascade reset!")
-                time.sleep(0.3)
-                st.rerun()
 
         st.markdown("---")
         st.markdown("**Quick Links:**")

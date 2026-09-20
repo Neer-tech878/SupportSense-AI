@@ -22,12 +22,12 @@ from app.api.schemas import (
     QueryRequest,
     QueryResponse,
 )
-from app.cache import cache_clear, cache_stats
+from app.cache import cache_stats
 from app.config import settings
 from app.database import get_stats
 from app.engines.anomaly_engine import detect_anomalies
 from app.engines.query_engine import run_nl_query
-from app.llm.factory import get_cascade, reset_cascade
+from app.llm.factory import get_cascade
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -122,22 +122,3 @@ def anomaly_detection(
         counts_by_type=result["counts_by_type"],
         summary=result["summary"],
     )
-
-
-# ── POST /api/v1/cache/clear ──────────────────────────────────────────────────
-
-@router.post(
-    "/api/v1/cache/clear",
-    summary="Clear Query Cache & Reset Cascade",
-    description="Wipes the in-memory LRU query cache and forces LLM cascade rebuild.",
-    tags=["Infrastructure"],
-)
-def clear_cache() -> dict[str, Any]:
-    cache_clear()
-    cascade = reset_cascade()
-    return {
-        "status": "cleared",
-        "cache_stats": cache_stats(),
-        "active_provider": cascade.active_provider,
-        "all_providers": cascade.all_providers,
-    }
