@@ -1,6 +1,6 @@
 # 🎯 SupportSense AI — Enterprise Support Analytics & Autonomous Copilot
 
-> **Production-Ready, Enterprise-Grade Natural Language Data Analytics, Autonomous Text-to-SQL Engine, and Dual-Track Anomaly Detection System.**
+> **Production-Ready, Enterprise-Grade Natural Language Data Analytics, Autonomous Self-Healing Text-to-SQL Engine, and Dual-Track Anomaly Detection System.**
 > Built with FastAPI · Streamlit · SQLite · sqlglot · Groq (Llama 3.3 70B) · Google Gemini · Ollama (Qwen 2.5 Coder)
 
 [![Python](https://img.shields.io/badge/Python-3.11%2B-blue.svg)](https://python.org)
@@ -12,131 +12,151 @@
 
 ---
 
-## 🌟 Executive Summary & Enterprise Value
+## 🌟 Executive Overview & Enterprise Value
 
-In modern enterprise support operations (Zendesk, ServiceNow, Jira Service Management, Salesforce Service Cloud), leadership and operations managers are inundated with thousands of tickets across multiple tiers, SLAs, and time zones. Extracting actionable insights typically requires dedicated business intelligence (BI) teams, complex SQL pipelines, or brittle dashboard filters.
+In enterprise customer support environments (ServiceNow, Zendesk, Jira Service Management, Salesforce Service Cloud), leadership and operations directors manage millions of interactions across diverse queues, complex SLAs, and tiered agent workflows. Gaining immediate visibility usually requires dedicated Business Intelligence (BI) teams, fragile dashboard filters, or slow manual SQL authoring.
 
-**SupportSense AI** is an autonomous analytics copilot and intelligence platform engineered to bridge natural language questions directly into deterministic, secure database queries and executive syntheses in milliseconds.
+**SupportSense AI** is an autonomous analytics copilot that bridges conversational natural language directly into deterministic, secure database queries, automated error correction, and executive narrative summaries in milliseconds.
 
-### Why SupportSense AI Stands Out:
-- **Instant Natural Language to SQL**: Translates complex, conversational business questions (*"Which agents are not taking their work seriously?"*, *"Show all critical tickets breaching 12-hour SLAs"*) into precise SQLite/Postgres queries.
-- **AST Security Gatekeeper (Zero Code Execution)**: Unlike naive agents that rely on unsafe `eval()` / `exec()` or raw text execution, SupportSense AI parses every generated query through an Abstract Syntax Tree (AST) sandbox using `sqlglot`, guaranteeing read-only `SELECT` execution and blocking injection attacks.
-- **Three-Tier Resilient Cascade**: High-speed cloud LLMs (Groq Llama 3.3 70B at ~300ms) with seamless fallback to Google Gemini Flash and fully offline local Ollama (Qwen2.5-Coder), with self-healing retry loops.
-- **Dual-Track Anomaly Detection**: Blends deterministic business logic (SLA breaches, critical timeouts) with statistical non-parametric outlier detection (IQR fences and Median Absolute Deviation [MAD]).
-- **Sub-10ms LRU Cache**: Zero token waste and instant turnaround for recurring executive queries.
-- **100% Test Pass Rate**: Evaluated against a rigorous 24-point automated test suite covering infrastructure, complex multi-metric joins, security injection tests, and edge-case handling.
-
----
-
-## 🏛️ System Architecture
-
-```
-                                  ┌─────────────────────────────────────────────────────────┐
-                                  │               Executive / Operations User               │
-                                  └────────────────────────────┬────────────────────────────┘
-                                                               │
-                                         ┌─────────────────────┴─────────────────────┐
-                                         ▼                                           ▼
-                           ┌───────────────────────────┐               ┌───────────────────────────┐
-                           │    Streamlit Workspace    │   HTTP REST   │     FastAPI Gateway       │
-                           │   Interactive Dashboard   │◄─────────────►│    Swagger / OpenAPI      │
-                           │       (Port 8501)         │               │       (Port 8000)         │
-                           └───────────────────────────┘               └─────────────┬─────────────┘
-                                                                                     │
-                                                                      ┌──────────────┴──────────────┐
-                                                                      ▼                             ▼
-                                                        ┌──────────────────────────┐  ┌───────────────────────────┐
-                                                        │  Text-to-SQL Pipeline    │  │   Anomaly Detection       │
-                                                        │    (5-Stage Engine)      │  │   (Dual-Track Engine)     │
-                                                        └─────────────┬────────────┘  └─────────────┬─────────────┘
-                                                                      │                             │
-                                  ┌───────────────────────────────────┼─────────────────────────────┘
-                                  ▼                                   ▼
-                      ┌───────────────────────┐           ┌─────────────────────────────────────────┐
-                      │  Three-Tier Cascade   │           │      Persistent SQLite In-Memory        │
-                      │  1. Groq (Llama 70B)  │           │           Singleton Engine              │
-                      │  2. Gemini Flash      ├──────────►│  ┌───────────────────────────────────┐  │
-                      │  3. Local Ollama      │           │  │   sqlglot AST Gatekeeper (Safe)   │  │
-                      │  4. Self-Heal Loop    │           │  └───────────────────────────────────┘  │
-                      └───────────────────────┘           └─────────────────────────────────────────┘
-```
+### Core Differentiators:
+- **Universal Natural Language Parsing**: Handles complex, informal, vague, or typo-ridden questions (e.g., *"how many agents seroiusly not working properly?"* or *"show me all critical tickets not resolved within 12 hours"*).
+- **Closed-Loop Self-Healing SQL Pipeline**: If an LLM-generated SQL query produces an execution or syntax error, the engine automatically catches the exact SQLite traceback, feeds it back into the LLM cascade with targeted repair prompts, and re-validates the query through the AST gatekeeper until a clean execution succeeds.
+- **AST Security Gatekeeper (Zero Code Execution)**: Unlike insecure agents that execute arbitrary Python (`eval()`/`exec()`) or run unchecked raw SQL, SupportSense AI parses every generated query into an Abstract Syntax Tree (AST) using `sqlglot`. It strictly blocks multi-statements, write operations (`DROP`, `DELETE`, `UPDATE`, `INSERT`), and table hallucinations.
+- **Three-Tier Multi-LLM Cascade**: High-speed Groq Cloud (Llama 3.3 70B at ~300ms) with seamless fallback to Google Gemini 1.5 Flash and local air-gapped Ollama (Qwen2.5-Coder).
+- **Dual-Track Anomaly Detection**: Blends deterministic SLA breach rules with non-parametric statistical outlier detection (IQR fences and Median Absolute Deviation [MAD]).
+- **Sub-10ms LRU Cache**: Repeat queries return in ~6ms without consuming external LLM tokens.
+- **100% Test Verification (Grade A+)**: Verified with a 24-point automated test suite covering infrastructure, complex queries, security injection vectors, and edge cases.
 
 ---
 
-## ⚡ 5-Stage Text-to-SQL Pipeline
+## 🔄 The Closed-Loop Autonomous Pipeline (Deep Dive)
 
-SupportSense AI enforces an end-to-end 5-stage pipeline designed for enterprise reliability:
+The core strength of SupportSense AI is its **fully autonomous, closed-loop Text-to-SQL-to-Insight engine**. It does not merely generate SQL and hope for the best; it sanitizes, caches, generates, validates, self-heals, executes, and synthesizes in an end-to-end feedback loop:
 
 ```
-[User Query] 
-     │
-     ▼
-[Stage 1: Input Sanitisation] 
-     • Trims whitespace, validates input length (3–500 chars), guards against prompt leaks.
-     │
-     ▼
-[Stage 2: LRU Cache Lookup] 
-     • MD5-normalized query hash lookup. 
-     • Returns in < 10ms with zero LLM token consumption on cache hits.
-     │
-     ▼
-[Stage 3: LLM Cascade & Prompt Engineering]
-     • Schema-grounded system prompt with DDL, domain rules, and few-shot composite examples.
-     • Primary: Groq Cloud (Llama 3.3 70B Versatile, ~300ms latency).
-     • Secondary: Google Gemini 1.5 Flash.
-     • Offline Fallback: Local Ollama (Qwen 2.5 Coder).
-     │
-     ▼
-[Stage 4: AST Security Gatekeeper (sqlglot)]
-     • Compiles SQL into an Abstract Syntax Tree.
-     • Enforces strict single `SELECT` statement.
-     • Blocks: `INSERT`, `UPDATE`, `DELETE`, `DROP`, `ALTER`, `TRUNCATE`, `ATTACH`, `EXEC`.
-     • Semicolon-injection & multi-statement rejection.
-     • Table-target validation (must reference `tickets`).
-     │
-     ▼
-[Stage 5: Sandboxed Execution & Self-Healing Loop]
-     • Executes query against persistent in-memory SQLite database.
-     • Automated Self-Healing: If an `OperationalError` occurs, error traceback is sent back
-       to the LLM for automated syntax repair (up to 2 retries).
-     • Narrative Synthesis: LLM synthesizes raw SQL rows into executive-ready text.
-     • Stores successful result into LRU cache.
+                                  [ User's Natural Language Query ]
+                                                  │
+                                                  ▼
+                                     ┌─────────────────────────┐
+                                     │  Stage 1: Sanitisation  │
+                                     │  Length, strip spaces   │
+                                     └────────────┬────────────┘
+                                                  │
+                                                  ▼
+                                     ┌─────────────────────────┐
+                                     │   Stage 2: LRU Cache    │───────[ Cache Hit ]───────┐
+                                     │  MD5 query hash lookup  │                          │
+                                     └────────────┬────────────┘                          │
+                                                  │ (Cache Miss)                          │
+                                                  ▼                                       │
+                                     ┌─────────────────────────┐                          │
+                                     │   Stage 3: LLM Cascade  │                          │
+                                     │   Groq → Gemini → Ollama│                          │
+                                     │   Schema-grounded prompt│                          │
+                                     └────────────┬────────────┘                          │
+                                                  │ (Raw SQL)                             │
+                                                  ▼                                       │
+                                     ┌─────────────────────────┐                          │
+                     ┌──────────────►│ Stage 4: AST Gatekeeper │                          │
+                     │               │ sqlglot AST verification│                          │
+                     │               └────────────┬────────────┘                          │
+                     │                            │ (Validated SELECT)                    │
+                     │                            ▼                                       │
+        ┌────────────┴──────────┐    ┌─────────────────────────┐                          │
+        │ Self-Healing Loop     │    │ Stage 5: In-Memory DB   │                          │
+        │ Feed error traceback  │◄───┤ SQLite Execution        │                          │
+        │ back to LLM cascade   │ERR │ Persistent Singleton    │                          │
+        └───────────────────────┘    └────────────┬────────────┘                          │
+                                                  │ (Execution Success: Rows)             │
+                                                  ▼                                       │
+                                     ┌─────────────────────────┐                          │
+                                     │ Narrative Synthesis     │                          │
+                                     │ LLM turns rows into     │                          │
+                                     │ executive plain English │                          │
+                                     └────────────┬────────────┘                          │
+                                                  │                                       │
+                                                  ▼                                       │
+                                     ┌─────────────────────────┐                          │
+                                     │ Write to LRU Cache      │                          │
+                                     └────────────┬────────────┘                          │
+                                                  │                                       │
+                                                  ▼                                       ▼
+                                     [ Executive Answer + Data Table + Interactive UI ]
 ```
 
 ---
 
-## 🔍 Dual-Track Anomaly Detection Engine
+### Step-by-Step Pipeline Mechanics
 
-Real-world operational telemetry is heavily skewed. Traditional Gaussian/Z-score models produce false alarms because support ticket resolution times exhibit heavy right-skewed distributions. SupportSense AI deploys a **dual-track detection methodology**:
+#### 1. Input Sanitisation & Normalisation
+- Every incoming query is stripped of excess whitespace, inspected for prompt injection attempts, and bounded within 3 to 500 characters.
+- Query normalisation ensures variations in capitalization or punctuation (e.g., *"What are the open tickets?"* vs *"what are the open tickets"*) map to the same internal signature.
 
-```
-                       ┌─────────────────────────────────────────────────┐
-                       │          Incoming Ticket Telemetry              │
-                       └────────────────────────┬────────────────────────┘
-                                                │
-                      ┌─────────────────────────┴─────────────────────────┐
-                      ▼                                                   ▼
-         ┌─────────────────────────┐                         ┌─────────────────────────┐
-         │ Track 1: Deterministic  │                         │  Track 2: Robust Stats  │
-         │       SLA Rules         │                         │     Non-Parametric      │
-         └────────────┬────────────┘                         └────────────┬────────────┘
-                      │                                                   │
-         • CRITICAL_SLA_BREACH:                               • STATISTICAL_RESOLUTION:
-           High/Critical unresolved > 24h                       IQR Fence (Q3 + 1.5 × IQR)
-         • RESPONSE_TIME_BREACH:                              • ROBUST_ZSCORE_OUTLIER:
-           Critical initial response > 4h                       MAD (Median Absolute Dev) > 3.0
-                                                              • SERVICE_DISSATISFACTION:
-                                                                Rating = 1 AND Resolution > Q3
-```
+#### 2. Sub-10ms LRU Caching
+- Before any LLM API call is dispatched, an MD5 hash of the normalized query is checked against an in-memory Least Recently Used (LRU) store.
+- **Cache Hit**: Returns the previous validated SQL, data records, and narrative answer in **~6.3 ms**, saving API costs and delivering sub-second response times.
+- **Cache Miss**: Passes the query forward to the LLM generation cascade.
 
-- **Severity Categorization**: Anomalies are tagged with `CRITICAL`, `HIGH`, or `MEDIUM` severity levels.
-- **REST Filtering**: Query anomalies directly via `/api/v1/anomalies?severity=CRITICAL`.
+#### 3. Schema-Grounded LLM Prompting & Cascade
+- The LLM receives an engineered system prompt containing:
+  - **Exact SQLite DDL**: Table schema, data types, and primary keys.
+  - **Structural NULL Constraints**: Explicit rules dictating that empty CSV values (such as `resolution_time_hrs` for open tickets or `customer_rating`) must remain SQL `NULL` and be filtered using `IS NOT NULL`.
+  - **Historical Anchor Date**: Explicit date bounds (`2024-01-01` to `2024-03-30 18:06`). The model is barred from using `CURRENT_DATE` or `NOW()`, ensuring accurate historical filtering.
+  - **Composite Performance Semantics**: Domain rules mapping subjective questions (e.g., *"not taking work seriously"*, *"underperforming"*) into multi-metric SQL aggregations combining low customer ratings (`< 3`), open backlogs, escalations, and SLA breaches (> 24 hours).
+- **Multi-Provider Cascade**:
+  1. **Groq Cloud (Llama 3.3 70B Versatile)**: Primary provider offering ~300ms ultra-low latency.
+  2. **Google Gemini 1.5 Flash**: Secondary cloud fallback if Groq encounters rate limits (429) or network stalls.
+  3. **Local Ollama (Qwen 2.5 Coder 7B)**: Air-gapped, zero-cost offline local fallback.
+
+#### 4. Abstract Syntax Tree (AST) Security Gatekeeper
+Before any SQL statement touches SQLite, it must pass a **5-stage security audit**:
+1. **Markdown Stripping**: Strips markdown backticks (```` ```sql ````) and conversational preamble.
+2. **Empty Check**: Rejects empty LLM outputs.
+3. **Semicolon-Injection Guard**: Splits on semicolons; rejects any query containing multiple statements.
+4. **Keyword Blocklist**: Fast regex pre-filter blocking `INSERT`, `UPDATE`, `DELETE`, `DROP`, `ALTER`, `CREATE`, `TRUNCATE`, `REPLACE`, `ATTACH`, `DETACH`, `EXEC`, `EXECUTE`, `PRAGMA`, and `VACUUM`.
+5. **AST Compilation via `sqlglot`**:
+   - Parses the SQL using SQLite dialect rules into an AST structure.
+   - Enforces that the root AST node is strictly `sqlglot.exp.Select`. Any other statement type is immediately rejected.
+   - Validates that the query references the authorized `tickets` table and not hallucinated or system tables.
+
+#### 5. Execution & The Self-Healing Error Repair Loop
+Even with strict prompting, LLMs occasionally produce SQLite syntax edge cases (e.g., mismatched quotes, non-existent function names, or invalid aggregate aliases).
+
+SupportSense AI solves this with an automated **Self-Healing Loop**:
+1. The validated SQL is dispatched to the persistent in-memory SQLite connection.
+2. If SQLite raises an `OperationalError`:
+   - The engine catches the error traceback.
+   - It builds an automated repair prompt containing:
+     - The original user question.
+     - The failed SQL statement.
+     - The exact SQLite error message (e.g., `no such column: resolved_date`).
+   - The prompt is sent back to the LLM cascade requesting an immediate syntax correction.
+   - The corrected SQL is re-routed through the AST security gatekeeper.
+   - Execution is re-attempted (up to 2 automatic repair cycles).
+3. If successful, the repair event is logged, and the clean results are returned.
+
+#### 6. Natural Language Synthesis Loop
+- The raw SQL records (up to 200 rows) are fed back into the LLM alongside the original query.
+- The model produces a 2–4 sentence executive summary citing exact numerical totals, agent IDs, and actionable operational insights.
+- The complete result package (SQL, raw data rows, narrative answer, provider metadata, and latency) is saved to the LRU cache.
+
+---
+
+## 🛡️ Enterprise Security & Sandboxing Architecture
+
+| Threat / Risk | Naive LLM Implementations | SupportSense AI Architecture |
+| :--- | :--- | :--- |
+| **Remote Code Execution (RCE)** | Uses Text-to-Pandas with `eval()` / `exec()` | **Zero Python execution**. Operates exclusively through an AST-sandboxed SQL engine. |
+| **SQL Injection** | Executes raw LLM SQL strings directly | **`sqlglot` AST validation** verifies query structure and rejects multi-statement injection. |
+| **Data Modification / Loss** | Write commands can alter or delete data | **Read-Only Enforcement**: Blocks `DROP`, `DELETE`, `UPDATE`, `INSERT`, `ALTER`, `TRUNCATE`. |
+| **Database Connection Leaks** | Frequent opening and closing causes "closed database" errors | **Persistent SQLite Singleton**: Thread-safe connection using `check_same_thread=False` with no-op close protection. |
+| **IPv6 DNS Delay** | Windows `localhost` resolution stalls for 2000ms | **Explicit `127.0.0.1` binding** for both FastAPI and Streamlit, cutting latency to < 10ms. |
 
 ---
 
 ## 📊 Evaluation & Verification Results
 
-SupportSense AI was subjected to a comprehensive automated evaluation suite (`final_eval.py`) validating every layer of the application:
+SupportSense AI was subjected to a comprehensive automated evaluation suite (`final_eval.py`) validating all 24 assessment criteria:
 
 ```
 =================================================================
@@ -188,6 +208,35 @@ SupportSense AI was subjected to a comprehensive automated evaluation suite (`fi
   Grade        : A+
 =================================================================
 ```
+
+---
+
+## 🔍 Dual-Track Anomaly Detection Engine
+
+Real-world operational telemetry is heavily skewed. Traditional Gaussian/Z-score models produce false alarms because support ticket resolution times exhibit heavy right-skewed distributions. SupportSense AI deploys a **dual-track detection methodology**:
+
+```
+                       ┌─────────────────────────────────────────────────┐
+                       │          Incoming Ticket Telemetry              │
+                       └────────────────────────┬────────────────────────┘
+                                                │
+                      ┌─────────────────────────┴─────────────────────────┐
+                      ▼                                                   ▼
+         ┌─────────────────────────┐                         ┌─────────────────────────┐
+         │ Track 1: Deterministic  │                         │  Track 2: Robust Stats  │
+         │       SLA Rules         │                         │     Non-Parametric      │
+         └────────────┬────────────┘                         └────────────┬────────────┘
+                      │                                                   │
+         • CRITICAL_SLA_BREACH:                               • STATISTICAL_RESOLUTION:
+           High/Critical unresolved > 24h                       IQR Fence (Q3 + 1.5 × IQR)
+         • RESPONSE_TIME_BREACH:                              • ROBUST_ZSCORE_OUTLIER:
+           Critical initial response > 4h                       MAD (Median Absolute Dev) > 3.0
+                                                              • SERVICE_DISSATISFACTION:
+                                                                Rating = 1 AND Resolution > Q3
+```
+
+- **Severity Categorization**: Anomalies are tagged with `CRITICAL`, `HIGH`, or `MEDIUM` severity levels.
+- **REST Filtering**: Query anomalies directly via `/api/v1/anomalies?severity=CRITICAL`.
 
 ---
 
@@ -334,15 +383,16 @@ docker-compose up --build
 
 ---
 
-## 🏢 Enterprise Integration & Readiness
+## 🏢 Enterprise Integration & Production Readiness
 
-| Enterprise Need | How SupportSense AI Delivers |
+| Enterprise Capability | Implementation in SupportSense AI |
 | :--- | :--- |
-| **Security & Compliance** | Strict AST validation (`sqlglot`) guarantees zero RCE. Code evaluation (`eval`/`exec`) is completely prohibited. Database execution is restricted to read-only SQLite singleton. |
-| **High Availability & Redundancy** | Automatic multi-provider cascade ensures zero downtime. If cloud APIs (Groq/Gemini) rate-limit or fail, queries automatically fall back to local Ollama. |
-| **Cost Optimization** | Groq's high-speed LLaMA 3.3 70B handles high query throughput. The LRU cache returns repeat queries in under 10ms with zero token cost. |
-| **Scalability & Modern Stack** | Built on FastAPI (async, ASGI) and Pydantic v2. Can be effortlessly connected to PostgreSQL, Snowflake, BigQuery, or DuckDB via SQLAlchemy. |
-| **Observability** | Structured logging on every stage: sanitization, cache hits, provider latency, AST validation status, and SQL execution time. |
+| **Zero RCE Security Sandbox** | All inputs are converted to SQL and validated via `sqlglot` AST parsing. Code execution functions (`eval`, `exec`) are prohibited. |
+| **Automated Self-Healing** | If a query encounters a SQLite syntax or operational error, the traceback is re-fed to the LLM for automatic repair without crashing or dropping the request. |
+| **High Availability & Fault Tolerance** | 3-tier cascade (`Groq → Gemini → Ollama`) guarantees that even during cloud provider outages, queries fall back seamlessly to local models. |
+| **Cost & Latency Optimization** | Integrated LRU query cache serves repeat requests in **~6.3 ms** with zero LLM token consumption. |
+| **Database Agnostic** | Built with standard SQL patterns. Can be swapped from in-memory SQLite to PostgreSQL, Snowflake, BigQuery, or DuckDB via SQLAlchemy. |
+| **Full Audit Trail & Observability** | Structured logging across all pipeline stages: input sanitisation, AST audit status, provider selection, database execution time, and cache hits. |
 
 ---
 
@@ -359,7 +409,7 @@ SupportSense-AI/
 │   │   ├── routes.py           # REST endpoints (/health, /api/v1/query, /api/v1/anomalies)
 │   │   └── schemas.py          # Pydantic v2 request/response contracts
 │   ├── engines/
-│   │   ├── query_engine.py     # 5-stage Text-to-SQL engine with AST gatekeeper
+│   │   ├── query_engine.py     # 5-stage Text-to-SQL engine with AST gatekeeper & self-healing
 │   │   └── anomaly_engine.py   # Dual-track anomaly engine (SLA + IQR/MAD stats)
 │   └── llm/
 │       ├── base.py             # BaseLLMClient ABC, schema DDL, few-shot prompt rules
