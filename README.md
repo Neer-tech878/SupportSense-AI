@@ -3,6 +3,7 @@
 > **Production-Ready, Enterprise-Grade Natural Language Data Analytics, Autonomous Self-Healing Text-to-SQL Engine, and Dual-Track Anomaly Detection System.**
 > Built with FastAPI · Streamlit · SQLite · sqlglot · Groq (Llama 3.3 70B) · Google Gemini · Ollama (Qwen 2.5 Coder)
 
+[![Live Demo](https://img.shields.io/badge/🌐_Live_Demo-Streamlit_Cloud-FF4B4B?style=for-the-badge)](https://neer-tech878-supportsense-ai-streamlit-app-3sgnux.streamlit.app)
 [![Python](https://img.shields.io/badge/Python-3.11%2B-blue.svg)](https://python.org)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.111-009688.svg)](https://fastapi.tiangolo.com)
 [![Streamlit](https://img.shields.io/badge/Streamlit-1.35-FF4B4B.svg)](https://streamlit.io)
@@ -286,13 +287,14 @@ chmod +x run.sh
 docker-compose up --build
 ```
 
-### Access Ports:
+### Access & Live Demo:
 | Service | URL | Description |
 | :--- | :--- | :--- |
-| **Streamlit Workspace** | `http://localhost:8501` | Interactive executive analytics dashboard |
-| **FastAPI REST API** | `http://localhost:8000` | High-performance async backend |
-| **Interactive Swagger Docs** | `http://localhost:8000/docs` | Live OpenAPI test console |
-| **ReDoc Documentation** | `http://localhost:8000/redoc` | Full endpoint specifications |
+| 🌐 **Live Web App** | [Launch SupportSense AI](https://neer-tech878-supportsense-ai-streamlit-app-3sgnux.streamlit.app) | **Hosted Cloud Dashboard (Zero install)** |
+| 🖥️ **Local Dashboard** | `http://localhost:8501` | Interactive executive analytics dashboard |
+| 🔌 **FastAPI REST API** | `http://localhost:8000` | High-performance async backend |
+| 📄 **Interactive Swagger Docs** | `http://localhost:8000/docs` | Live OpenAPI test console |
+| 📑 **ReDoc Documentation** | `http://localhost:8000/redoc` | Full endpoint specifications |
 
 ---
 
